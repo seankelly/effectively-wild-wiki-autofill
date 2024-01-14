@@ -12,6 +12,7 @@ import bs4
 import requests
 
 
+EFFECTIVELY_WILD_WIKI = 'https://effectivelywild.fandom.com/wiki/'
 EFFECTIVELY_WILD_RSS_URL = 'https://blogs.fangraphs.com/feed/effectively-wild/'
 EFFECTIVELY_WILD_EMAIL_CSV_URL = 'https://docs.google.com/spreadsheets/d/1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/export?gid=0&format=csv'
 FEED_NAMESPACES = {
@@ -45,6 +46,34 @@ class EWEpisode:
             last_check_time = now - datetime.timedelta(hours=2)
         else:
             last_check_time = datetime.datetime.fromisoformat(saved_last_check_time)
+        # If-Modified-Since: <day-name>, <day> <month> <year> <hour>:<minute>:<second> GMT
+        modified_since = last_check_time.strftime('%a, %d %b %Y %H:%M:%S GMT')
+        headers = {'If-Modified-Since': modified_since}
+        req = requests.get(EFFECTIVELY_WILD_RSS_URL, headers=headers)
+        if req.status_code == 200:
+            self.feed = ElementTree.fromstring(req.text)
+            self._split_feed()
+            episodes = sorted(self.episodes, reverse=True)
+            # Check which episodes do not yet exist on the wiki page.
+            missing_episodes = set()
+            for number in episodes:
+                if not self._wiki_page_exists(number):
+                    missing_episodes.add(number)
+                else:
+                    break
+            for number in sorted(missing_episodes):
+                episode = self.episodes[number]
+                print(self._parse_episode(number, episode))
+
+    @staticmethod
+    def _wiki_page_exists(number):
+        wiki_page = f'{EFFECTIVELY_WILD_WIKI}{number}'
+        req = requests.get(wiki_page, allow_redirects=False)
+        if req.status_code == 301:
+            return True
+        elif req.status_code == 404:
+            return False
+        return True
 
     def use_local_feed(self, feed_path):
         xml = ElementTree.parse(feed_path)
@@ -69,7 +98,7 @@ class EWEpisode:
         if (target.startswith('https://www.fangraphs.com/players/') or
             target.startswith('http://www.fangraphs.com/statss.aspx?playerid=')):
             return f"[[{anchor_text}]]"
-        elif target.startswith('https://effectivelywild.fandom.com/wiki/'):
+        elif target.startswith(EFFECTIVELY_WILD_WIKI):
             wiki_page = target[40:].replace('_', ' ')
             return f"[{wiki_page}|{anchor_text}]"
         elif target.startswith('https://en.wikipedia.org/wiki/'):
@@ -319,6 +348,8 @@ def main():
     if args.test is not None:
         wiki_text = effectively_wild.use_local_feed(args.test)
         print(wiki_text)
+    else:
+        effectively_wild.check_feed()
 
 
 if __name__ == '__main__':
