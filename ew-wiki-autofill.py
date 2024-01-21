@@ -149,7 +149,8 @@ class EWEpisode:
 
         hosts = ""
         host_categories = []
-        if summary.startswith("Ben Lindbergh and Meg Rowley"):
+        if (summary.startswith("Ben Lindbergh and Meg Rowley") or
+            summary.startswith("Ben Lindbergh, Meg Rowley")):
             # Alternate the order of the hosts.
             if number % 2 == 0:
                 hosts = "[[Ben Lindbergh]]<br>[[Meg Rowley]]"
