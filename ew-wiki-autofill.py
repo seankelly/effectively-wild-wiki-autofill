@@ -153,9 +153,9 @@ class EWEpisode:
             summary.startswith("Ben Lindbergh, Meg Rowley")):
             # Alternate the order of the hosts.
             if number % 2 == 0:
-                hosts = "[[Ben Lindbergh]]<br>[[Meg Rowley]]"
-            else:
                 hosts = "[[Meg Rowley]]<br>[[Ben Lindbergh]]"
+            else:
+                hosts = "[[Ben Lindbergh]]<br>[[Meg Rowley]]"
             host_categories.extend([
                 "[[Category:Ben Lindbergh Episodes]]",
                 "[[Category:Meg Rowley Episodes]]",
