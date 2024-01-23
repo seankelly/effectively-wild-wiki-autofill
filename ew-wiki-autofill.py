@@ -235,6 +235,24 @@ class EWEpisode:
         ])
         return self._clean_smart_quotes(wiki_text)
 
+    def _template_latest_episode(self, number, episode):
+        full_title = self._element_text(episode.find('title'))
+        # Strip off "Effectively Wild" prefix.
+        title = full_title[17:]
+        episode_link = self._element_text(episode.find('link'))
+        wiki_text = "\n".join([
+            "{{Latest Episode",
+            ""
+            f"|epnumber={number}",
+            ""
+            f"|title1={title}",
+            ""
+            f"|infopage={episode_link}",
+            ""
+            """}}<noinclude>This template is the "Latest Episode" banner on the home page. This is a separate transclusion so that it doesn't clutter the history of the home page.</noinclude>""",
+        ])
+        return wiki_text
+
     def _find_links(self, description):
         links = []
         for anchor in description.find_all('a'):
