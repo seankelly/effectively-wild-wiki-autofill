@@ -190,7 +190,7 @@ class EWEpisode:
             "",
         ]
         for interstitial in audio['inter']:
-            infobox.append(f"| interstitials={inter}\n")
+            infobox.append(f"| interstitials={interstitial}\n")
         infobox.extend([
             f"| outro={audio['outro']}",
             "",
