@@ -9,6 +9,7 @@ import re
 from xml.etree import ElementTree
 
 import bs4
+import pywikibot
 import requests
 
 
@@ -28,7 +29,8 @@ FEED_NAMESPACES = {
 
 class EWEpisode:
     
-    def __init__(self):
+    def __init__(self, site):
+        self.site = site
         self.state = {}
         self.feed = None
         self.episodes = {}
@@ -65,15 +67,9 @@ class EWEpisode:
                 episode = self.episodes[number]
                 print(self._parse_episode(number, episode))
 
-    @staticmethod
-    def _wiki_page_exists(number):
-        wiki_page = f'{EFFECTIVELY_WILD_WIKI}{number}'
-        req = requests.get(wiki_page, allow_redirects=False)
-        if req.status_code == 301:
-            return True
-        elif req.status_code == 404:
-            return False
-        return True
+    def _wiki_page_exists(self, number):
+        episode_shortcut = pywikibot.Page(self.site, str(number))
+        return episode_shortcut.exists()
 
     def use_local_feed(self, feed_path):
         xml = ElementTree.parse(feed_path)
@@ -363,7 +359,8 @@ def options():
 def main():
     args = options()
 
-    effectively_wild = EWEpisode()
+    site = pywikibot.Site('effectivelywild:effectivelywild')
+    effectively_wild = EWEpisode(site)
     if args.test is not None:
         wiki_text = effectively_wild.use_local_feed(args.test)
         print(wiki_text)
