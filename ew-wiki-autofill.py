@@ -86,11 +86,7 @@ class EWEpisode:
             return element.text
 
     @staticmethod
-    def _wikify_link(link):
-        target = link.get('href')
-        anchor_text = link.string
-        if target is None:
-            raise RuntimeError
+    def _wikify_href(target, anchor_text):
         # Check for FanGraphs player link.
         if (target.startswith('https://www.fangraphs.com/players/') or
             target.startswith('http://www.fangraphs.com/statss.aspx?playerid=')):
@@ -103,6 +99,13 @@ class EWEpisode:
             return f"{{{{W|{wiki_page}|{anchor_text}}}}}"
         else:
             return f"[{target} {anchor_text}]"
+
+    def _wikify_link(self, link):
+        target = link.get('href')
+        anchor_text = link.string
+        if target is None:
+            return anchor_text
+        return self._wikify_href(target, anchor_text)
 
     def _split_feed(self):
         for item in self.feed.findall('channel/item'):
