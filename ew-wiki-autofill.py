@@ -34,6 +34,7 @@ class EWEpisode:
         self.state = {}
         self.feed = None
         self.episodes = {}
+        self.emails = []
 
     def load_state(self, state_path):
         with open(state_path) as state_input:
@@ -305,18 +306,7 @@ class EWEpisode:
                 summary.append(text)
         return ''.join(summary).strip()
 
-    def _find_emails(self, number, content):
-        no_emails_found = [
-            "==Email Questions==",
-            "* {For EMAIL episodes: copy the question and who asked it from the"
-            " [https://docs.google.com/spreadsheets/d/1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/"
-            "edit#gid=0 question database],"
-            " and link prominent teams and players.}",
-            "",
-        ]
-        if 'email' not in content:
-            return no_emails_found
-
+    def _load_emails(self):
         emails = []
         emails_db_req = requests.get(EFFECTIVELY_WILD_EMAIL_CSV_URL)
         if 200 <= emails_db_req.status_code < 300:
@@ -330,18 +320,35 @@ class EWEpisode:
                     email_episode = int(email[1])
                 except ValueError:
                     continue
-                if email_episode == number:
-                    # Put the blank before the email itself because the emails
-                    # in the database are "backwards", with the first on the
-                    # episode the last in the episode list.
-                    emails.append('')
-                    emails.append(f"* {email[2].strip()}")
-                elif email_episode < number:
-                    # No more emails for this episode.
-                    break
-            if emails:
-                emails.append(no_emails_found[0])
-                emails.reverse()
+                self.emails.append((email_episode, email[2]))
+
+    def _find_emails(self, number, content):
+        if not self.emails:
+            self._load_emails()
+
+        no_emails_found = [
+            "==Email Questions==",
+            "* {For EMAIL episodes: copy the question and who asked it from the"
+            " [https://docs.google.com/spreadsheets/d/1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/"
+            "edit#gid=0 question database],"
+            " and link prominent teams and players.}",
+            "",
+        ]
+
+        emails = []
+        for email in self.emails:
+            if email[0] == number:
+                # Put the blank before the email itself because the emails
+                # in the database are "backwards", with the first on the
+                # episode the last in the episode list.
+                emails.append('')
+                emails.append(f"* {email[1].strip()}")
+            elif email[0] < number:
+                # No more emails for this episode.
+                break
+        if emails:
+            emails.append(no_emails_found[0])
+            emails.reverse()
 
         if not emails:
             return no_emails_found
