@@ -198,6 +198,7 @@ class EWEpisode:
             f"{{{{#vardefine:downloadlink|{download_url}}}}}",
         ])
 
+        links.insert(0, self._wikify_href(episode_link, full_title))
         link_list = [f"* {link}" for link in links]
 
         wiki_text = '\n'.join(infobox + [
