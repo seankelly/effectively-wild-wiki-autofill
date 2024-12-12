@@ -66,7 +66,9 @@ class EWEpisode:
                     break
             for number in sorted(missing_episodes):
                 episode = self.episodes[number]
-                print(self._parse_episode(number, episode))
+                episode_title, episode_wikitext = self._parse_episode(number, episode)
+                print(episode_title)
+                print(episode_wikitext)
 
     def _wiki_page_exists(self, number):
         episode_shortcut = pywikibot.Page(self.site, str(number))
@@ -234,7 +236,7 @@ class EWEpisode:
             f"[[Category: {pub_date.year} Episodes]]",
             f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
         ])
-        return self._clean_smart_quotes(wiki_text)
+        return full_title, self._clean_smart_quotes(wiki_text)
 
     def _template_latest_episode(self, number, episode):
         full_title = self._element_text(episode.find('title'))
