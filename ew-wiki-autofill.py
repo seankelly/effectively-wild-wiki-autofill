@@ -60,7 +60,7 @@ class EWEpisode:
             # Check which episodes do not yet exist on the wiki page.
             missing_episodes = set()
             for number in episodes:
-                if not self._wiki_page_exists(number):
+                if not self._wiki_page_exists(str(number)):
                     missing_episodes.add(number)
                 else:
                     break
@@ -70,9 +70,9 @@ class EWEpisode:
                 print(episode_title)
                 print(episode_wikitext)
 
-    def _wiki_page_exists(self, number):
-        episode_shortcut = pywikibot.Page(self.site, str(number))
-        return episode_shortcut.exists()
+    def _wiki_page_exists(self, page_title):
+        page = pywikibot.Page(self.site, page_title)
+        return page.exists()
 
     def use_local_feed(self, feed_path):
         xml = ElementTree.parse(feed_path)
