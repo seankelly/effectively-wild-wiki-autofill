@@ -29,8 +29,10 @@ FEED_NAMESPACES = {
 
 class EWEpisode:
     
-    def __init__(self, site):
+    def __init__(self, site, check_all=False, test_mode=False):
         self.site = site
+        self.test_mode = test_mode
+        self.check_all = check_all
         self.state = {}
         self.feed = None
         self.episodes = {}
@@ -55,32 +57,36 @@ class EWEpisode:
         req = requests.get(EFFECTIVELY_WILD_RSS_URL, headers=headers)
         if req.status_code == 200:
             self.feed = ElementTree.fromstring(req.text)
-            self._split_feed()
-            episodes = sorted(self.episodes, reverse=True)
-            # Check which episodes do not yet exist on the wiki page.
-            missing_episodes = set()
-            for number in episodes:
-                if not self._wiki_page_exists(str(number)):
-                    missing_episodes.add(number)
-                else:
-                    break
-            for number in sorted(missing_episodes):
-                episode = self.episodes[number]
-                episode_title, episode_wikitext = self._parse_episode(number, episode)
-                print(episode_title)
-                print(episode_wikitext)
-
-    def _wiki_page_exists(self, page_title):
-        page = pywikibot.Page(self.site, page_title)
-        return page.exists()
+            self._parse_feed()
 
     def use_local_feed(self, feed_path):
         xml = ElementTree.parse(feed_path)
         self.feed = xml.getroot()
+        self._parse_feed()
+
+    def _parse_feed(self):
         self._split_feed()
-        latest = max(self.episodes)
-        episode = self.episodes[latest]
-        return self._parse_episode(latest, episode)
+        episodes = sorted(self.episodes, reverse=True)
+        # Check which episodes do not yet exist on the wiki page.
+        missing_episodes = set()
+        for number in episodes:
+            if not self._wiki_page_exists(str(number)):
+                missing_episodes.add(number)
+            elif not self.check_all:
+                # Default to only checking until an episode's wiki page exists.
+                # When run regularly, this will be the most common situation
+                # and saves repeated API calls to confirm older episodes have
+                # wiki pages.
+                break
+        for number in sorted(missing_episodes):
+            episode = self.episodes[number]
+            episode_title, episode_wikitext = self._parse_episode(number, episode)
+            print(episode_title)
+            print(episode_wikitext)
+
+    def _wiki_page_exists(self, page_title):
+        page = pywikibot.Page(self.site, page_title)
+        return page.exists()
 
     @staticmethod
     def _element_text(element):
@@ -364,7 +370,9 @@ class EWEpisode:
 def options():
     parser = argparse.ArgumentParser()
     parser.add_argument('--state', metavar='FILE', help="State file")
-    parser.add_argument('--test', metavar='FILE', help="Run in test mode with local file")
+    parser.add_argument('--rss', metavar='FILE', help="Process local RSS file")
+    parser.add_argument('--test', action='store_true', help="Run in test mode")
+    parser.add_argument('--all', action='store_true', help="Check all episodes in RSS")
     args = parser.parse_args()
     return args
 
@@ -373,10 +381,11 @@ def main():
     args = options()
 
     site = pywikibot.Site('effectivelywild:effectivelywild')
-    effectively_wild = EWEpisode(site)
-    if args.test is not None:
-        wiki_text = effectively_wild.use_local_feed(args.test)
-        print(wiki_text)
+    test_mode = args.test or False
+    check_all = args.all or False
+    effectively_wild = EWEpisode(site, check_all=check_all, test_mode=test_mode)
+    if args.rss is not None:
+        effectively_wild.use_local_feed(args.rss)
     else:
         effectively_wild.check_feed()
 
