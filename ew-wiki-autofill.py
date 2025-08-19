@@ -371,7 +371,8 @@ class EWEpisode:
                 # in the database are "backwards", with the first on the
                 # episode the last in the episode list.
                 emails.append('')
-                emails.append(f"* {email[1].strip()}")
+                email_text = email[1].strip().replace("\r\n", "<br>")
+                emails.append(f"* {email_text}")
             elif email[0] < number:
                 # No more emails for this episode.
                 break
