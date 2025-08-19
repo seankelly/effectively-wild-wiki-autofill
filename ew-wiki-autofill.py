@@ -67,6 +67,7 @@ class EWEpisode:
     def _parse_feed(self):
         self._split_feed()
         episodes = sorted(self.episodes, reverse=True)
+        latest_episode = max(episodes)
         # Check which episodes do not yet exist on the wiki page.
         missing_episodes = set()
         for number in episodes:
@@ -81,6 +82,7 @@ class EWEpisode:
         for number in sorted(missing_episodes):
             episode = self.episodes[number]
             episode_title, episode_wikitext = self._parse_episode(number, episode)
+            is_latest_episode = number == latest_episode
             if self.test_mode:
                 print(episode_title)
                 print(episode_wikitext)
