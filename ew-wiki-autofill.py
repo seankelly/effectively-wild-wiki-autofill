@@ -110,9 +110,11 @@ class EWEpisode:
 
     @staticmethod
     def _wikify_href(target, anchor_text):
-        # Check for FanGraphs player link.
-        if (target.startswith('https://www.fangraphs.com/players/') or
-            target.startswith('http://www.fangraphs.com/statss.aspx?playerid=')):
+        # Check for FanGraphs player link but only if it doesn't link to a
+        # particular section on that player's page.
+        if ((target.startswith('https://www.fangraphs.com/players/') or
+            target.startswith('http://www.fangraphs.com/statss.aspx?playerid=')) and
+            '#' not in target):
             return f"[[{anchor_text}]]"
         elif target.startswith(EFFECTIVELY_WILD_WIKI):
             wiki_page = target[40:].replace('_', ' ')
