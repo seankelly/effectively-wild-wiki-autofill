@@ -304,7 +304,9 @@ class EWEpisode:
                         text_parts.append(child.string)
                 text = ''.join(text_parts)
                 for line in text.splitlines():
-                    idx = line.index(':')
+                    idx = line.find(':')
+                    if idx == -1:
+                        continue
                     audio_text = line[idx + 2:]
                     if 'intro' in line:
                         audio['intro'] = audio_text
