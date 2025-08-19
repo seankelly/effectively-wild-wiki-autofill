@@ -257,7 +257,7 @@ class EWEpisode:
             f"[[Category: {pub_date.year} Episodes]]",
             f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
         ])
-        return full_title, self._clean_smart_quotes(wiki_text)
+        return title, self._clean_smart_quotes(wiki_text)
 
     def _template_latest_episode(self, number, episode):
         full_title = self._element_text(episode.find('title'))
