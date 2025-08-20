@@ -294,30 +294,28 @@ class EWEpisode:
             'inter': [],
         }
         for paragraph in description.find_all('p'):
-            #for child in paragraph.children:
-            #    print(f"=> {child}")
-            cleaned_text = ''.join(paragraph.stripped_strings)
-            # Each audio line will look like:
-            #   Audio <what>: Title, Link
-            if cleaned_text is not None and cleaned_text.startswith('Audio'):
-                text_parts = []
-                for child in paragraph.children:
+            in_audio_desc = False
+            line = ""
+            for child in paragraph.children:
+                if child.string and 'Audio' in child.string:
+                    line = child.string
+                    in_audio_desc = True
+                elif in_audio_desc:
                     if child.name == 'a':
-                        text_parts.append(self._wikify_link(child))
+                        line += self._wikify_link(child)
+                    elif child.name == 'br':
+                        idx = line.find(':')
+                        if idx >= 0:
+                            audio_text = line[idx + 2:]
+                            if 'intro' in line:
+                                audio['intro'] = audio_text
+                            elif 'outro' in line:
+                                audio['outro'] = audio_text
+                            else:
+                                audio['inter'].append(audio_text)
+                        in_audio_desc = False
                     elif child.string is not None:
-                        text_parts.append(child.string)
-                text = ''.join(text_parts)
-                for line in text.splitlines():
-                    idx = line.find(':')
-                    if idx == -1:
-                        continue
-                    audio_text = line[idx + 2:]
-                    if 'intro' in line:
-                        audio['intro'] = audio_text
-                    elif 'outro' in line:
-                        audio['outro'] = audio_text
-                    else:
-                        audio['inter'].append(audio_text)
+                        line += child.string
         return audio
 
     def _find_summary(self, description):
