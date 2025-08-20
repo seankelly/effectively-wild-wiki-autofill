@@ -93,11 +93,11 @@ class EWEpisode:
         # Create the page for the episode.
         page = pywikibot.Page(self.site, title)
         page.text = page_text
-        #page.save("Create initial episode page.")
+        page.save("Create initial episode page")
         # Now create the redirect for it.
         redirect = pywikibot.Page(self.site, str(number))
         redirect.text = f"#REDIRECT [[{title}]]"
-        #redirect.save("Create redirect to episode page")
+        redirect.save("Create redirect to episode page")
 
     def _wiki_page_exists(self, page_title):
         page = pywikibot.Page(self.site, page_title)
