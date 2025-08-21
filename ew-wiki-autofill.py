@@ -14,6 +14,7 @@ import requests
 
 
 EFFECTIVELY_WILD_WIKI = 'https://effectivelywild.fandom.com/wiki/'
+EFFECTIVELY_WILD_WIKI_LATEST_EPISODE = 'Template:Current_Latest_Episode'
 EFFECTIVELY_WILD_RSS_URL = 'https://blogs.fangraphs.com/feed/effectively-wild/'
 EFFECTIVELY_WILD_EMAIL_CSV_URL = 'https://docs.google.com/spreadsheets/d/1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/export?gid=0&format=csv'
 FEED_NAMESPACES = {
@@ -81,13 +82,20 @@ class EWEpisode:
                 break
         for number in sorted(missing_episodes):
             episode = self.episodes[number]
-            episode_title, episode_wikitext = self._parse_episode(number, episode)
+            episode_title, episode_link, episode_wikitext = self._parse_episode(number, episode)
             is_latest_episode = number == latest_episode
             if self.test_mode:
                 print(episode_title)
                 print(episode_wikitext)
             else:
                 self._create_episode_pages(number, episode_title, episode_wikitext)
+            if is_latest_episode:
+                # Update the latest episode template.
+                if self.test_mode:
+                    print("#### Update latest episode template")
+                    print(self._template_latest_episode(number, episode_title, episode_link))
+                else:
+                    self._update_latest_template(number, episode_title, episode_link)
 
     def _create_episode_pages(self, number, title, page_text):
         # Create the page for the episode.
@@ -98,6 +106,12 @@ class EWEpisode:
         redirect = pywikibot.Page(self.site, str(number))
         redirect.text = f"#REDIRECT [[{title}]]"
         redirect.save("Create redirect to episode page")
+
+    def _update_latest_template(self, number, title, link):
+        template_text = self._template_latest_episode(number, title, link)
+        page = pywikibot.Page(self.site, EFFECTIVELY_WILD_WIKI_LATEST_EPISODE)
+        page.text = template_text
+        page.save("Update latest episode template")
 
     def _wiki_page_exists(self, page_title):
         page = pywikibot.Page(self.site, page_title)
@@ -259,23 +273,17 @@ class EWEpisode:
             f"[[Category: {pub_date.year} Episodes]]",
             f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
         ])
-        return title, self._clean_smart_quotes(wiki_text)
+        return title, episode_link, self._clean_smart_quotes(wiki_text)
 
-    def _template_latest_episode(self, number, episode):
-        full_title = self._element_text(episode.find('title'))
-        # Strip off "Effectively Wild" prefix.
-        title = full_title[17:]
-        episode_link = self._element_text(episode.find('link'))
+    def _template_latest_episode(self, number, title, episode_link):
         wiki_text = "\n".join([
             "{{Latest Episode",
-            ""
             f"|epnumber={number}",
-            ""
             f"|title1={title}",
-            ""
             f"|infopage={episode_link}",
-            ""
-            """}}<noinclude>This template is the "Latest Episode" banner on the home page. This is a separate transclusion so that it doesn't clutter the history of the home page.</noinclude>""",
+            ("""}}<noinclude>This template is the "Latest Episode" banner on the home page."""
+             " This is a separate transclusion so that it doesn't clutter the history of"
+             " the home page.</noinclude>"),
         ])
         return wiki_text
 
