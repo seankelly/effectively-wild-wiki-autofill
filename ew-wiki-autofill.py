@@ -233,7 +233,8 @@ class EWEpisode:
         infobox.extend([
             f"| outro={audio['outro']}",
             "",
-            "}}",
+            # Deliberately skipping comma on next line to have them share a line.
+            "}}"
             f"{{{{#vardefine:downloadlink|{download_url}}}}}",
         ])
 
