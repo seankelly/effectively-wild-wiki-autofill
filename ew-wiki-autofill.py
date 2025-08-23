@@ -241,7 +241,20 @@ class EWEpisode:
         links.insert(0, self._wikify_href(episode_link, full_title))
         link_list = [f"* {link}" for link in links]
 
-        wiki_text = '\n'.join(infobox + [
+        # Collect all of the categories together.
+        categories = [
+            "[[Category:Episodes]]",
+            "[[Category:Incomplete Episode Page]]",
+        ]
+        if emails:
+            categories.append("[[Category:Email Episodes]]")
+        categories.extend(host_categories)
+        categories.extend([
+            f"[[Category: {pub_date.year} Episodes]]",
+            f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
+        ])
+
+        wiki_lines = infobox + [
             "{{IncompleteNotice}}",
             "",
             "==Summary==",
@@ -267,13 +280,8 @@ class EWEpisode:
             "* {List noteworthy tangents, quotes, highlights, miscellany not covered above.}",
             "",
             "==Links==",
-        ] + link_list + [
-            "[[Category:Episodes]]",
-            "[[Category:Incomplete Episode Page]]",
-        ] + host_categories + [
-            f"[[Category: {pub_date.year} Episodes]]",
-            f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
-        ])
+        ] + link_list + categories
+        wiki_text = '\n'.join(wiki_lines)
         return title, episode_link, self._clean_smart_quotes(wiki_text)
 
     def _template_latest_episode(self, number, title, episode_link):
