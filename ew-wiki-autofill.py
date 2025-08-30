@@ -205,7 +205,7 @@ class EWEpisode:
             if 'Meg Rowley' in summary:
                 host_categories.append("[[Category:Meg Rowley Episodes]]")
 
-        emails = self._find_emails(number, summary)
+        found_emails, emails = self._find_emails(number, summary)
 
         infobox = [
             "__NOTOC__",
@@ -246,7 +246,7 @@ class EWEpisode:
             "[[Category:Episodes]]",
             "[[Category:Incomplete Episode Page]]",
         ]
-        if emails:
+        if found_emails:
             categories.append("[[Category:Email Episodes]]")
         categories.extend(host_categories)
         categories.extend([
@@ -398,8 +398,8 @@ class EWEpisode:
             emails.reverse()
 
         if not emails:
-            return no_emails_found
-        return emails
+            return False, no_emails_found
+        return True, emails
 
 
 def options():
