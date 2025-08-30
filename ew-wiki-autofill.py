@@ -6,6 +6,7 @@ import datetime
 import io
 import json
 import re
+import zoneinfo
 from xml.etree import ElementTree
 
 import bs4
@@ -26,6 +27,7 @@ FEED_NAMESPACES = {
     "slash": "http://purl.org/rss/1.0/modules/slash/",
     "itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd",
 }
+FANGRAPHS_TIMEZONE = 'America/New_York'
 
 
 class EWEpisode:
@@ -175,6 +177,8 @@ class EWEpisode:
         episode_link = self._element_text(episode.find('link'))
         pub_date_text = self._element_text(episode.find('pubDate'))
         pub_date = datetime.datetime.strptime(pub_date_text, '%a, %d %b %Y %H:%M:%S %z')
+        # Convert the publish date into US Eastern Time to match FanGraphs.
+        fg_pub_date = pub_date.astimezone(tz=zoneinfo.ZoneInfo(FANGRAPHS_TIMEZONE))
         description = self._element_text(episode.find('content:encoded', FEED_NAMESPACES))
         duration = self._element_text(episode.find('itunes:duration', FEED_NAMESPACES))
         enclosure = episode.find('enclosure')
@@ -219,7 +223,7 @@ class EWEpisode:
             "",
             f"| mp3download={download_url}",
             "",
-            f"| date={pub_date.strftime('%B')} {pub_date.day}, {pub_date.year}",
+            f"| date={fg_pub_date.strftime('%B')} {fg_pub_date.day}, {fg_pub_date.year}",
             "",
             f"| duration={duration}",
             "",
@@ -250,7 +254,7 @@ class EWEpisode:
             categories.append("[[Category:Email Episodes]]")
         categories.extend(host_categories)
         categories.extend([
-            f"[[Category: {pub_date.year} Episodes]]",
+            f"[[Category: {fg_pub_date.year} Episodes]]",
             f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
         ])
 
