@@ -131,7 +131,7 @@ class EWEpisode:
             return f"[[{anchor_text}]]"
         elif target.startswith(EFFECTIVELY_WILD_WIKI):
             wiki_page = target[40:].replace('_', ' ')
-            return f"[{wiki_page}|{anchor_text}]"
+            return f"[[{wiki_page}|{anchor_text}]]"
         elif target.startswith('https://en.wikipedia.org/wiki/'):
             wiki_page = target[30:].replace('_', ' ')
             return f"{{{{W|{wiki_page}|{anchor_text}}}}}"
