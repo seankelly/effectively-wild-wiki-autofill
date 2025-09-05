@@ -6,6 +6,7 @@ import datetime
 import io
 import json
 import re
+import urllib.parse
 import zoneinfo
 from xml.etree import ElementTree
 
@@ -133,7 +134,8 @@ class EWEpisode:
             wiki_page = target[40:].replace('_', ' ')
             return f"[[{wiki_page}|{anchor_text}]]"
         elif target.startswith('https://en.wikipedia.org/wiki/'):
-            wiki_page = target[30:].replace('_', ' ')
+            # Convert all "_" to spaces and also decode any URL entities.
+            wiki_page = urllib.parse.unquote(target[30:].replace('_', ' '))
             return f"{{{{W|{wiki_page}|{anchor_text}}}}}"
         else:
             return f"[{target} {anchor_text}]"
