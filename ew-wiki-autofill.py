@@ -125,12 +125,9 @@ class EWEpisode:
             return element.text
 
     @staticmethod
-    def _wikify_href(target, anchor_text):
-        # Check for FanGraphs player link but only if it doesn't link to a
-        # particular section on that player's page.
-        if ((target.startswith('https://www.fangraphs.com/players/') or
-            target.startswith('http://www.fangraphs.com/statss.aspx?playerid=')) and
-            '#' not in target):
+    def _wikify_href(target, anchor_text, link_section=False):
+        # Check for FanGraphs player link but only if it isn't in the links section.
+        if (target.startswith('https://www.fangraphs.com/players/') and not link_section):
             return f"[[{anchor_text}]]"
         elif target.startswith(EFFECTIVELY_WILD_WIKI):
             wiki_page = target[40:].replace('_', ' ')
@@ -141,12 +138,12 @@ class EWEpisode:
         else:
             return f"[{target} {anchor_text}]"
 
-    def _wikify_link(self, link):
+    def _wikify_link(self, link, link_section=False):
         target = link.get('href')
         anchor_text = link.string
         if target is None:
             return anchor_text
-        return self._wikify_href(target, anchor_text)
+        return self._wikify_href(target, anchor_text, link_section)
 
     def _split_feed(self):
         for item in self.feed.findall('channel/item'):
@@ -305,7 +302,7 @@ class EWEpisode:
         for anchor in description.find_all('a'):
             text = anchor.string
             if text is not None and text.startswith('Link'):
-                links.append(self._wikify_link(anchor))
+                links.append(self._wikify_link(anchor, link_section=True))
         return links
 
     def _find_audio_links(self, description):
