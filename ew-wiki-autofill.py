@@ -33,9 +33,9 @@ FANGRAPHS_TIMEZONE = 'America/New_York'
 
 class EWEpisode:
     
-    def __init__(self, site, check_all=False, test_mode=False):
+    def __init__(self, site, check_all=False, dry_run_mode=False, test_mode=False):
         self.site = site
-        self.test_mode = test_mode
+        self.dry_run_mode = dry_run_mode
         self.check_all = check_all
         self.state = {}
         self.feed = None
@@ -87,14 +87,14 @@ class EWEpisode:
             episode = self.episodes[number]
             episode_title, episode_link, episode_wikitext = self._parse_episode(number, episode)
             is_latest_episode = number == latest_episode
-            if self.test_mode:
+            if self.dry_run_mode:
                 print(episode_title)
                 print(episode_wikitext)
             else:
                 self._create_episode_pages(number, episode_title, episode_wikitext)
             if is_latest_episode:
                 # Update the latest episode template.
-                if self.test_mode:
+                if self.dry_run_mode:
                     print("#### Update latest episode template")
                     print(self._template_latest_episode(number, episode_title, episode_link))
                 else:
@@ -421,7 +421,7 @@ def options():
     parser = argparse.ArgumentParser()
     parser.add_argument('--state', metavar='FILE', help="State file")
     parser.add_argument('--rss', metavar='FILE', help="Process local RSS file")
-    parser.add_argument('--test', action='store_true', help="Run in test mode")
+    parser.add_argument('--dry-run', action='store_true', help="Run in dry-run mode")
     parser.add_argument('--all', action='store_true', help="Check all episodes in RSS")
     args = parser.parse_args()
     return args
@@ -431,9 +431,9 @@ def main():
     args = options()
 
     site = pywikibot.Site('effectivelywild:effectivelywild')
-    test_mode = args.test or False
+    dry_run_mode = args.dry_run or False
     check_all = args.all or False
-    effectively_wild = EWEpisode(site, check_all=check_all, test_mode=test_mode)
+    effectively_wild = EWEpisode(site, check_all=check_all, dry_run_mode=dry_run_mode)
     if args.rss is not None:
         effectively_wild.use_local_feed(args.rss)
     else:
