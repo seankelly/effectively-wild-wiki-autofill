@@ -180,6 +180,8 @@ class EWEpisode:
         fg_pub_date = pub_date.astimezone(tz=zoneinfo.ZoneInfo(FANGRAPHS_TIMEZONE))
         description = self._element_text(episode.find('content:encoded', FEED_NAMESPACES))
         duration = self._element_text(episode.find('itunes:duration', FEED_NAMESPACES))
+        if not duration:
+            duration = 'N/A'
         enclosure = episode.find('enclosure')
         download_url = enclosure.get('url')
         content = bs4.BeautifulSoup(description, 'lxml')
