@@ -18,6 +18,7 @@ import requests
 EFFECTIVELY_WILD_WIKI = 'https://effectivelywild.fandom.com/wiki/'
 EFFECTIVELY_WILD_WIKI_LATEST_EPISODE = 'Template:Current_Latest_Episode'
 EFFECTIVELY_WILD_RSS_URL = 'https://blogs.fangraphs.com/feed/effectively-wild/'
+EFFECTIVELY_WILD_EPISODE_REGEX = r'https://blogs.fangraphs.com/effectively-wild-episode-(\d+)'
 EFFECTIVELY_WILD_EMAIL_CSV_URL = ('https://docs.google.com/spreadsheets/d/'
                                   '1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/'
                                   'export?gid=0&format=csv')
@@ -43,6 +44,8 @@ class EWEpisode:
         self.feed = None
         self.episodes = {}
         self.emails = []
+        self._current_episode = 0
+        self._episode_re = re.compile(EFFECTIVELY_WILD_EPISODE_REGEX)
 
     def load_state(self, state_path):
         with open(state_path) as state_input:
@@ -87,6 +90,7 @@ class EWEpisode:
                 break
         for number in sorted(missing_episodes):
             episode = self.episodes[number]
+            self._current_episode = number
             episode_title, episode_link, episode_wikitext = self._parse_episode(number, episode)
             is_latest_episode = number == latest_episode
             if self.dry_run_mode:
@@ -127,8 +131,7 @@ class EWEpisode:
         if element is not None:
             return element.text
 
-    @staticmethod
-    def _wikify_href(target, anchor_text, link_section=False):
+    def _wikify_href(self, target, anchor_text, link_section=False):
         # Check for FanGraphs player link but only if it isn't in the links section.
         if (target.startswith('https://www.fangraphs.com/players/') and not link_section):
             return f"[[{anchor_text}]]"
@@ -139,8 +142,16 @@ class EWEpisode:
             # Convert all "_" to spaces and also decode any URL entities.
             wiki_page = urllib.parse.unquote(target[30:].replace('_', ' '))
             return f"{{{{W|{wiki_page}|{anchor_text}}}}}"
-        else:
-            return f"[{target} {anchor_text}]"
+
+        if wiki_match := self._episode_re.match(target):
+            # If it's an Effectively Wild episode, include the link to the wiki
+            # page but only if it's not the same episode number as the current
+            # episode because it's a link to itself.
+            episode_number = wiki_match.group(1)
+            if episode_number and int(episode_number) != self._current_episode:
+                return f"[{target} {anchor_text}] ([[{episode_number}|Episode {episode_number}]])"
+
+        return f"[{target} {anchor_text}]"
 
     def _wikify_link(self, link, link_section=False):
         target = link.get('href')
