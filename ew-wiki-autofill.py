@@ -18,7 +18,9 @@ import requests
 EFFECTIVELY_WILD_WIKI = 'https://effectivelywild.fandom.com/wiki/'
 EFFECTIVELY_WILD_WIKI_LATEST_EPISODE = 'Template:Current_Latest_Episode'
 EFFECTIVELY_WILD_RSS_URL = 'https://blogs.fangraphs.com/feed/effectively-wild/'
-EFFECTIVELY_WILD_EMAIL_CSV_URL = 'https://docs.google.com/spreadsheets/d/1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/export?gid=0&format=csv'
+EFFECTIVELY_WILD_EMAIL_CSV_URL = ('https://docs.google.com/spreadsheets/d/'
+                                  '1-8lpspHQuR5GK7S_nNtGunLGrx60QnSa8XLG_wvRb4Q/'
+                                  'export?gid=0&format=csv')
 FEED_NAMESPACES = {
     "content": "http://purl.org/rss/1.0/modules/content/",
     "wfw": "http://wellformedweb.org/CommentAPI/",
