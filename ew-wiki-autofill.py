@@ -362,24 +362,29 @@ class EWEpisode:
         timestamp_re = re.compile(r'\((\d+:[\d+:]+)\)')
         apostrophe_fix = re.compile(r"['’]\]\]$")
         paragraphs = description.find_all('p')
-        for element in paragraphs[0]:
-            text = element.string
-            if element.name == 'a':
-                # Sometimes the apostrophe is in the link rather than after the
-                # link. Detect and move it to the next text.
-                link_apostrophe = ""
-                link_text = self._wikify_link(element)
-                if link_text.endswith("']]") or link_text.endswith("’]]"):
-                    # Extract the apostrophe used in the link to append after
-                    # the link text.
-                    link_apostrophe = link_text[-3]
-                    link_text = apostrophe_fix.sub("]]", link_text)
-                summary.append(link_text)
-                if link_apostrophe:
-                    summary.append(link_apostrophe)
-            elif text is not None:
-                text = timestamp_re.sub(timestamp_replace, text)
-                summary.append(text)
+        # Check every paragraph until the description paragraph is found.
+        for paragraph in paragraphs:
+            for element in paragraph:
+                text = element.string
+                if element.name == 'a':
+                    # Sometimes the apostrophe is in the link rather than after
+                    # the link. Detect and move it to the next text.
+                    link_apostrophe = ""
+                    link_text = self._wikify_link(element)
+                    if link_text.endswith("']]") or link_text.endswith("’]]"):
+                        # Extract the apostrophe used in the link to append
+                        # after the link text.
+                        link_apostrophe = link_text[-3]
+                        link_text = apostrophe_fix.sub("]]", link_text)
+                    summary.append(link_text)
+                    if link_apostrophe:
+                        summary.append(link_apostrophe)
+                elif text is not None:
+                    text = timestamp_re.sub(timestamp_replace, text)
+                    summary.append(text)
+            # Once a summary is pulled from a paragraph, that's enough.
+            if summary:
+                break
         return ''.join(summary).strip()
 
     def _load_emails(self):
