@@ -218,10 +218,14 @@ class EWEpisode:
                 "[[Category:Meg Rowley Episodes]]",
             ])
         else:
+            host_list = []
             if 'Ben Lindbergh' in summary:
                 host_categories.append("[[Category:Ben Lindbergh Episodes]]")
+                host_list.append("[[Ben Lindbergh]]")
             if 'Meg Rowley' in summary:
                 host_categories.append("[[Category:Meg Rowley Episodes]]")
+                host_list.append("[[Meg Rowley]]")
+            hosts = "<br>".join(host_list)
 
         found_emails, emails = self._find_emails(number, summary)
 
