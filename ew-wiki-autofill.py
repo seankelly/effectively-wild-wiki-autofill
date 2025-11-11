@@ -142,6 +142,11 @@ class EWEpisode:
             # Convert all "_" to spaces and also decode any URL entities.
             wiki_page = urllib.parse.unquote(target[30:].replace('_', ' '))
             return f"{{{{W|{wiki_page}|{anchor_text}}}}}"
+        elif 'typeform.com' in target:
+            # Typeform links are blocked on Fandom because of spam so mangle
+            # the target to have people copy/paste the link.
+            mangled_target = target.replace('https', 'http<span>s').replace('typeform', 'type</span>form')
+            return f"{anchor_text}: Link blocked by web site, copy manually: {mangled_target}"
 
         if wiki_match := self._episode_re.match(target):
             # If it's an Effectively Wild episode, include the link to the wiki
