@@ -94,7 +94,7 @@ class EWEpisode:
             episode_title, episode_link, episode_wikitext = self._parse_episode(number, episode)
             is_latest_episode = number == latest_episode
             if self.dry_run_mode:
-                print(episode_title)
+                print(f"TITLE: {episode_title}")
                 print(episode_wikitext)
             else:
                 self._create_episode_pages(number, episode_title, episode_wikitext)
@@ -167,18 +167,16 @@ class EWEpisode:
 
     def _split_feed(self):
         for item in self.feed.findall('channel/item'):
-            # <title>Effectively Wild Episode 2109: And Teoscar Goes To&#8230;</title>
+            # <title>Effectively Wild Episode N: The Title</title>
             title = self._element_text(item.find('title'))
             if title is None:
                 continue
-            description = self._element_text(item.find('content:encoded', FEED_NAMESPACES))
-            # Older episodes do not have the description so stop parsing the
-            # feed here because only the latest episode is needed.
-            if description is None:
-                break
             words = title.split()
             episode = words[3].rstrip(':')
-            episode_number = int(episode)
+            try:
+                episode_number = int(episode)
+            except ValueError:
+                continue
             self.episodes[episode_number] = item
 
     @staticmethod
@@ -196,15 +194,15 @@ class EWEpisode:
         pub_date = datetime.datetime.strptime(pub_date_text, '%a, %d %b %Y %H:%M:%S %z')
         # Convert the publish date into US Eastern Time to match FanGraphs.
         fg_pub_date = pub_date.astimezone(tz=zoneinfo.ZoneInfo(FANGRAPHS_TIMEZONE))
-        description = self._element_text(episode.find('content:encoded', FEED_NAMESPACES))
+        content = self._fetch_full_description(episode_link, episode)
+        if content is None:
+            print(f"Could not find full description for {full_title}")
+            return
         duration = self._element_text(episode.find('itunes:duration', FEED_NAMESPACES))
         if not duration:
             duration = 'N/A'
         enclosure = episode.find('enclosure')
         download_url = enclosure.get('url')
-        content = bs4.BeautifulSoup(description, 'lxml')
-        if content is None:
-            return
         links = self._find_links(content)
         audio = self._find_audio_links(content)
         summary = self._find_summary(content)
@@ -311,6 +309,19 @@ class EWEpisode:
         ] + link_list + categories
         wiki_text = '\n'.join(wiki_lines)
         return title, episode_link, self._clean_smart_quotes(wiki_text)
+
+    def _fetch_full_description(self, episode_link, episode):
+        # Check if the full description is in the episode XML first.
+        description = self._element_text(episode.find('content:encoded', FEED_NAMESPACES))
+        if description is not None:
+            content = bs4.BeautifulSoup(description, 'lxml')
+            return content
+        # Not in the feed so fetch the episode page.
+        episode_page = requests.get(episode_link)
+        episode_html = bs4.BeautifulSoup(episode_page.text, 'lxml')
+        description = episode_html.find('div', 'fullpostentry')
+        if description is not None:
+            return description
 
     def _template_latest_episode(self, number, title, episode_link):
         wiki_text = "\n".join([
