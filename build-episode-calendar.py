@@ -15,6 +15,7 @@ CATEGORY_LABELS = {
     "Category:Email Episodes": "E",
     "Category:Guest Episodes": "G",
     "Category:Live Episodes": "L",
+    "Category:Patreon Episodes": "P",
 }
 CALENDAR_INSERT_COMMENT = "<!-- AUTOMATIC CALENDAR -->"
 
@@ -85,6 +86,7 @@ def options():
     parser = argparse.ArgumentParser()
     parser.add_argument('year', type=int, help="Year to build")
     parser.add_argument('--dry-run', action='store_true', help="Run in dry-run mode")
+    parser.add_argument('--rebuild', action='store_true', help="Run full rebuild of calendar")
     args = parser.parse_args()
     return args
 
@@ -97,6 +99,11 @@ def main():
     year = args.year
     page_title = f"{year} Episode Calendar"
     print(f"Checking calendar page {page_title}...")
+    if not args.rebuild:
+        year_category = f"{year} Episodes"
+    else:
+        pass
+
     page = pywikibot.Page(site, page_title)
     if page.exists():
         if CALENDAR_INSERT_COMMENT not in page.text:
