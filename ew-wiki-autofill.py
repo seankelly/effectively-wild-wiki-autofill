@@ -32,6 +32,7 @@ FEED_NAMESPACES = {
     "itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd",
 }
 FANGRAPHS_TIMEZONE = 'America/New_York'
+LIMIT_BACKLOG_CHECK = 20
 
 
 class EWEpisode:
@@ -87,6 +88,9 @@ class EWEpisode:
                 # When run regularly, this will be the most common situation
                 # and saves repeated API calls to confirm older episodes have
                 # wiki pages.
+                break
+            elif self.check_all and number < (latest_episode - LIMIT_BACKLOG_CHECK):
+                # Limit how far back should be checked.
                 break
         for number in sorted(missing_episodes):
             episode = self.episodes[number]
