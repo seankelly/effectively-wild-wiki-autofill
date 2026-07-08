@@ -222,16 +222,16 @@ class EWEpisode:
             else:
                 hosts = "[[Ben Lindbergh]]<br>[[Meg Rowley]]"
             host_categories.extend([
-                "[[Category:Ben Lindbergh Episodes]]",
-                "[[Category:Meg Rowley Episodes]]",
+                "Ben Lindbergh Episodes",
+                "Meg Rowley Episodes",
             ])
         else:
             host_list = []
             if 'Ben Lindbergh' in summary:
-                host_categories.append("[[Category:Ben Lindbergh Episodes]]")
+                host_categories.append("Ben Lindbergh Episodes")
                 host_list.append("[[Ben Lindbergh]]")
             if 'Meg Rowley' in summary:
-                host_categories.append("[[Category:Meg Rowley Episodes]]")
+                host_categories.append("Meg Rowley Episodes")
                 host_list.append("[[Meg Rowley]]")
             hosts = "<br>".join(host_list)
 
@@ -273,17 +273,16 @@ class EWEpisode:
 
         # Collect all of the categories together.
         categories = [
-            "[[Category:Episodes]]",
-            "[[Category:Incomplete Episode Page]]",
+            "Episodes",
+            "Incomplete Episode Page",
         ]
         if found_emails:
-            categories.append("[[Category:Email Episodes]]")
+            categories.append("Email Episodes")
         categories.extend(host_categories)
-        categories.extend([
-            f"[[Category: {fg_pub_date.year} Episodes]]",
-            f"{{{{DEFAULTSORT: Episode 0{number}}}}}",
-        ])
+        categories.append(f" {fg_pub_date.year} Episodes")
 
+        category_pages = [f"[[Category:{name}]]" for name in categories]
+        category_pages.append(f"{{{{DEFAULTSORT: Episode 0{number}}}}}")
         wiki_lines = infobox + [
             "{{IncompleteNotice}}",
             "",
@@ -310,7 +309,7 @@ class EWEpisode:
             "* {List noteworthy tangents, quotes, highlights, miscellany not covered above.}",
             "",
             "==Links==",
-        ] + link_list + categories
+        ] + link_list + category_pages
         wiki_text = '\n'.join(wiki_lines)
         return title, episode_link, self._clean_smart_quotes(wiki_text)
 
