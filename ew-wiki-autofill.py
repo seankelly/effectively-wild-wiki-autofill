@@ -199,7 +199,7 @@ class EWEpisode:
         # Convert the publish date into US Eastern Time to match FanGraphs.
         fg_pub_date = pub_date.astimezone(tz=zoneinfo.ZoneInfo(FANGRAPHS_TIMEZONE))
         content = self._fetch_full_description(episode_link, episode)
-        if content is None:
+        if content is None or content == "":
             print(f"Could not find full description for {full_title}")
             return
         duration = self._element_text(episode.find('itunes:duration', FEED_NAMESPACES))
@@ -315,7 +315,7 @@ class EWEpisode:
 
     def _fetch_full_description(self, episode_link, episode):
         # Check if the full description is in the episode XML first.
-        description = self._element_text(episode.find('content:encoded', FEED_NAMESPACES))
+        description = self._element_text(episode.find('description', FEED_NAMESPACES))
         if description is not None:
             content = bs4.BeautifulSoup(description, 'lxml')
             return content
