@@ -33,6 +33,7 @@ FEED_NAMESPACES = {
 }
 FANGRAPHS_TIMEZONE = 'America/New_York'
 LIMIT_BACKLOG_CHECK = 20
+PAID_EPISODE_TEXT = "This is a free preview of a paid episode"
 
 
 class EWEpisode:
@@ -210,6 +211,7 @@ class EWEpisode:
         links = self._find_links(content)
         audio = self._find_audio_links(content)
         summary = self._find_summary(content)
+        paid_episode = self._check_paid_episode(content)
 
         hosts = ""
         host_categories = []
@@ -278,6 +280,8 @@ class EWEpisode:
         ]
         if found_emails:
             categories.append("Email Episodes")
+        if paid_episode:
+            categories.append("Patreon Episodes")
         categories.extend(host_categories)
         categories.append(f" {fg_pub_date.year} Episodes")
 
@@ -405,11 +409,30 @@ class EWEpisode:
                         summary.append(link_apostrophe)
                 elif text is not None:
                     text = timestamp_re.sub(timestamp_replace, text)
-                    summary.append(text)
+                    stripped_text = text.strip()
+                    # Check the text isn't only whitespace characters before
+                    # adding to the summary.
+                    if stripped_text:
+                        summary.append(text)
             # Once a summary is pulled from a paragraph, that's enough.
             if summary:
                 break
         return ''.join(summary).strip()
+
+    # Check the description for the paid episode note.
+    def _check_paid_episode(self, description):
+        paid_episode = False
+        paragraphs = description.find_all('p')
+        for paragraph in paragraphs:
+            for element in paragraph:
+                if element.name is None:
+                    continue
+                for child in element.children:
+                    text = child.string
+                    if text is not None and PAID_EPISODE_TEXT in text:
+                        paid_episode = True
+                        break
+        return paid_episode
 
     def _load_emails(self):
         emails = []
